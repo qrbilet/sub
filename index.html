@@ -12,8 +12,11 @@
             height: 100vh;
             margin: 0;
             font-family: Arial, sans-serif;
+            background-color: black; /* Черный фон */
             background-image: url('gif.gif'); /* Фон - гифка */
-            background-size: cover; /* Заполнение фона */
+            background-size: contain; /* Заполнение фона с сохранением пропорций */
+            background-repeat: no-repeat; /* Без повторений */
+            background-position: center; /* Центрирование фона */
             position: relative; /* Для позиционирования затемнения */
             overflow: hidden; /* Скрытие содержимого */
         }
@@ -29,13 +32,23 @@
         h3 {
             position: relative; /* Чтобы текст был над затемнением */
             z-index: 2; /* Текст над затемнением */
-            color: black; /* Черный цвет текста */
+            color: rgba(0, 0, 0, 0.6); /* Белый цвет текста с 30% прозрачностью */
             font-size: 3em; /* Увеличенный размер шрифта */
             font-weight: bold; /* Жирный шрифт */
             letter-spacing: -0.02em; /* Интервал между буквами */
             text-align: center; /* Выравнивание по центру */
-            text-shadow: 0 0 5px red, 0 0 10px red, 0 0 20px red; /* Неоновая красная тень */
+            text-shadow: 
+                0 0 5px rgba(255, 0, 0, 0.6), 
+                0 0 10px rgba(255, 0, 0, 0.6), 
+                0 0 20px rgba(255, 0, 0, 0.6); /* Неоновая красная тень с 30% прозрачностью */
             padding: 10px; /* Отступ для улучшения читаемости */
+        }
+
+        /* Медиазапросы для мобильных устройств */
+        @media (max-width: 600px) {
+            h3 {
+                font-size: 2em; /* Уменьшенный размер шрифта для мобильных устройств */
+            }
         }
     </style>
 </head>
