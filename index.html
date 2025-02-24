@@ -1,61 +1,560 @@
 <!DOCTYPE html>
 <html lang="ru">
+
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Сайт выключен</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Уведомление об оплате</title>
+    <base href=".">
+    <link rel="icon" type="image/x-icon" href="./favicon.ico">
+    <link rel="shortcut icon" type="image/x-icon" href="./favicon.ico">
+
     <style>
-        body {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
+        html, body {
+            min-height: 100%;
             margin: 0;
-            font-family: Arial, sans-serif;
-            background-color: black; /* Черный фон */
-            background-image: url('gif.gif'); /* Фон - гифка */
-            background-size: contain; /* Заполнение фона с сохранением пропорций */
-            background-repeat: no-repeat; /* Без повторений */
-            background-position: center; /* Центрирование фона */
-            position: relative; /* Для позиционирования затемнения */
-            overflow: hidden; /* Скрытие содержимого */
+            box-sizing: border-box;
+            background-color: #f5f1e8;
+            font-family: 'Circe', sans-serif;
         }
-        .overlay {
+
+        @font-face {
+            font-family: 'Circe';
+            src: url(circe-bold-webfont.27529df664ce2f0e.woff2) format("woff2"),
+                 url(circe-bold-webfont.a6d441f673662776.woff) format("woff");
+            font-weight: 700;
+        }
+
+        @font-face {
+            font-family: 'Circe';
+            src: url(circe-regular-webfont.70e2ea4fb032224b.woff2) format("woff2"),
+                 url(circe-regular-webfont.01fbe67cb561e424.woff) format("woff");
+            font-weight: 400;
+        }
+
+        .logo {
+            text-align: center;
+            margin: 16px 0;
+        }
+
+        .content {
+            padding: 0 16px;
+        }
+
+        .ticket {
+            margin-top: 39px;
+        }
+
+        .ticket__qrcode {
+            margin: 31px 0;
+            text-align: center;
+        }
+
+        .ticket__button {
+            margin-bottom: 32px;
+        }
+
+        .trip-details {
+            margin-bottom: 35px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+        }
+
+        .trip-details p {
+            margin: 5px 0;
+        }
+
+        .text-block {
+            text-align: center;
+            margin-bottom: 14px;
+        }
+
+        .input-hidden {
+            opacity: 0;
+            position: absolute;
+            pointer-events: none;
+        }
+
+        .editable-number {
+            display: inline-block;
+            border-bottom: 1px dashed transparent;
+            cursor: pointer;
+            font-size: 20px;
+            font-weight: 700;
+        }
+
+        .editable-number:hover {
+            border-bottom-color: #000;
+        }
+
+        .styled-input {
+            width: 60px;
+            font-size: 16px;
+            padding: 5px;
+            text-align: center;
+            background-color: #f5f1e8;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        @media (max-width: 767px) {
+            .ticket__qrcode img,
+            .ticket__qrcode canvas {
+                height: 350px !important;
+                width: 350px !important;
+            }
+        }
+
+        #toast {
+            visibility: hidden;
+            min-width: 250px;
+            margin-left: -125px;
+            background-color: #333;
+            color: #fff;
+            text-align: center;
+            border-radius: 2px;
+            padding: 16px;
+            position: fixed;
+            z-index: 1;
+            left: 50%;
+            bottom: 30px;
+            font-size: 17px;
+            transition: opacity 0.5s, bottom 0.5s;
+            opacity: 0;
+        }
+
+        #toast.show {
+            visibility: visible;
+            opacity: 1;
+            bottom: 50px;
+        }
+
+        .video-container {
             position: absolute;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background-color: rgba(0, 0, 0, 0.2); /* Черное затемнение с яркостью 20% */
-            z-index: 1; /* Подложка под текст */
-        }
-        h3 {
-            position: relative; /* Чтобы текст был над затемнением */
-            z-index: 2; /* Текст над затемнением */
-            color: rgba(0, 0, 0, 0.8); /* Белый цвет текста с 30% прозрачностью */
-            font-size: 3em; /* Увеличенный размер шрифта */
-            font-weight: bold; /* Жирный шрифт */
-            letter-spacing: -0.02em; /* Интервал между буквами */
-            text-align: center; /* Выравнивание по центру */
-            text-shadow: 
-                0 0 5px rgba(255, 0, 0, 0.6), 
-                0 0 10px rgba(255, 0, 0, 0.6), 
-                0 0 20px rgba(255, 0, 0, 0.6); /* Неоновая красная тень с 30% прозрачностью */
-            padding: 10px; /* Отступ для улучшения читаемости */
+            z-index: 1000;
+            display: none;
+            background-color: rgba(0, 0, 0, 0.7);
         }
 
-        /* Медиазапросы для мобильных устройств */
-        @media (max-width: 600px) {
-            h3 {
-                font-size: 2em; /* Уменьшенный размер шрифта для мобильных устройств */
+        .video-container video {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            max-width: 90%;
+            max-height: 90%;
+        }
+
+        .payment-info-details {
+            display: flex;
+            justify-content: center;
+            flex-direction: column;
+            align-items: center;
+            font-size: 18px;
+            line-height: 24px;
+            font-weight: 400;
+            letter-spacing: 0.02em;
+            margin-bottom: 32px;
+            color: #1d1346;
+        }
+
+        #bus-label {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 6px;
+            cursor: pointer;
+        }
+
+        .editable-number.ticket-price {
+            font-size: 48px;
+            line-height: 54px;
+            font-weight: 400;
+            margin-bottom: 17px;
+        }
+
+        .price-number {
+            font-size: 48px;
+            line-height: 54px;
+            font-weight: 700;
+            margin-bottom: 17px;
+        }
+
+        .currency-symbol {
+            font-size: 48px;
+            line-height: 54px;
+            font-weight: 400;
+            margin-bottom: 17px;
+        }
+
+        .editable-number.ticket-price:hover {
+            text-decoration: underline;
+        }
+
+        .editable-number.transport-number {
+            font-size: 16px;
+            color: rgb(181, 181, 181);
+            line-height: 24px;
+        }
+
+        /* Light theme */
+        :root {
+            --totl-primary-background: rgba(255, 255, 255, 0.8);
+            --totl-primary-font-color: #000;
+            --totl-primate-font-descolor: #565656;
+        }
+
+        /* Dark theme */
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --totl-primary-background: rgba(0, 0, 0, 0.8);
+                --totl-primary-font-color: #fff;
+                --totl-primate-font-descolor: #cecece;
             }
         }
+
+        .payment-info-details {
+            display: flex;
+            justify-content: center;
+            flex-direction: column;
+            align-items: center;
+            font-size: 18px;
+            line-height: 24px;
+            font-weight: 400;
+            letter-spacing: 0.02em;
+            margin-bottom: 32px;
+            font-family: 'Circe', sans-serif;
+            color: #1d1346;
+        }
+
+        .label, .editable-number.transport-number {
+            font-family: 'Circe', sans-serif;
+            font-weight: 350;
+            color: rgb(181, 181, 181);
+            font-size: 16px;
+            line-height: 24px;
+        }
+
+        body {
+            background-color: #f5f1e8;
+            font-family: 'Circe', sans-serif;
+        }
+
+        .payment-info-details {
+            display: flex;
+            justify-content: center;
+            flex-direction: column;
+            align-items: center;
+            font-size: 18px;
+            line-height: 24px;
+            font-weight: 400;
+            letter-spacing: 0.02em;
+            margin-bottom: 32px;
+            font-family: 'Circe', sans-serif;
+            color: #1d1346;
+        }
+
+        #ticket-date-time {
+            font-family: 'Circe', sans-serif;
+            font-size: 18px;
+            font-weight: 400;
+            color: rgb(29, 19, 70);
+            line-height: 24px;
+            letter-spacing: 0.02em;
+        }
+
+        .text-block {
+            margin-top: 24px;
+            margin-bottom: 14px;
+        }
+
+        .text-block p {
+            font-family: Circe, sans-serif;
+            font-weight: 400;
+            font-size: 32px;
+            line-height: 32px;
+            color: rgb(29, 19, 70);
+            margin: 0;
+            text-align: center;
+        }
+
+        #time-since-payment {
+            font-family: Circe, sans-serif;
+            font-weight: 700;
+            font-size: 32px;
+            line-height: 32px;
+            color: rgb(29, 19, 70);
+        }
     </style>
+
+    <link rel="stylesheet" href="./style.css" media="all">
 </head>
+
 <body>
-    <div class="overlay"></div>
-    <h3>
-        <span>Сайт выключен за неуплату налогов в виде месячной подписки в 350руб.</span><br>
-    </h3>
+    <noscript>
+        <div><img style="position:absolute; left:-9999px;" alt="" src="./95305900"></div>
+    </noscript>
+
+    <app-root ng-version="14.3.0">
+        <router-outlet></router-outlet>
+        <app-wrapper>
+            <div class="wrapper">
+                <app-header>
+                    <header>
+                        <h1 onclick="playVideo()">Уведомление об оплате</h1>
+                        <div class="video-container" id="videoContainer" style="display: none;">
+                            <video id="payment-notification-video" controls>
+                                <source src="" type="video/mp4">
+                                Ваш браузер не поддерживает видео.
+                            </video>
+                        </div>
+                    </header>
+                </app-header>
+
+                <div class="logo">
+                    <img src="./logo.svg" alt="Система Быстрых Платежей">
+                </div>
+
+                <div class="content">
+                    <router-outlet></router-outlet>
+                    <app-result>
+                        <div class="text-block text-block_text-align_center">
+                            <p>Ваш проезд успешно оплачен!</p>
+                        </div>
+                        <app-ticket>
+                            <div class="ticket">
+                                <app-trip-details>
+                                    <div class="trip-details text-block modern-trip-details" id="trip-details">
+                                        <p>
+                                            <span id="bus-label" onclick="toggleTransport()">Автобус: №</span><strong class="editable-number" id="ticket-bus" onclick="editBus()">0</strong>
+                                            <input type="number" id="input-ticket-bus" class="input-hidden" onblur="saveBus()">
+                                        </p>
+
+                                        <p>
+                                            <strong class="editable-number price-number" id="ticket-price" onclick="editPrice()">40</strong><span class="currency-symbol"> ₽</span>
+                                            <input type="text" id="input-ticket-price" class="input-hidden styled-input">
+                                        </p>
+
+                                        <p>
+                                            <strong id="ticket-date-time" class="date-time"></strong>
+                                        </p>
+
+                                        <p>
+                                            <span class="label">Т/С:</span>
+                                            <strong class="editable-number transport-number" id="ticket-tc" onclick="editTC()">0</strong>
+                                            <input type="number" id="input-ticket-tc" class="input-hidden styled-input" onblur="saveTC()">
+                                        </p>
+                                    </div>
+                                </app-trip-details>
+
+                                <div class="text-block text-block_text-align_center text-block_margin-bottom_14">
+                                    <p onclick="resetTimer()">С момента оплаты прошло:<br><strong id="time-since-payment">00:00:00</strong></p>
+                                </div>
+
+                                <div class="ticket__qrcode">
+                                    <img src="./qrcode.png" alt="QR-код билета" style="height: 2000px; width: 2000px;" aria-label="url" title="Билет">
+                                </div>
+
+                                <div class="text-block text-block_text-align_center">
+                                    <p>Серия билета: <strong id="ticket-series">QR2001</strong></p>
+                                    <p>Номер билета: <strong id="ticket-number">20240715071131000</strong></p>
+                                </div>
+
+                                <div class="text-block text-block_text-align_center">
+                                    <p>Предъявите контролеру QR-код.<br>Чтобы сохранить реквизиты билета, нажмите кнопку «Скачать»</p>
+                                </div>
+
+                                <div class="ticket__button">
+                                    <app-button>
+                                        <div class="for-button">
+                                            <button class="for-button__button" onclick="showToast('Ошибка')">Скачать билет</button>
+                                        </div>
+                                        <div class="footer-text">v1.2 by doycs</div>
+                                    </app-button>
+                                </div>
+                            </div>
+                        </app-ticket>
+                    </app-result>
+                </div>
+            </div>
+        </app-wrapper>
+    </app-root>
+
+    <div id="toast">Ошибка</div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            function updateTime() {
+                const now = new Date();
+                const options = { year: 'numeric', month: 'numeric', day: 'numeric', hour: 'numeric', minute: 'numeric', timeZone: 'Europe/Moscow' };
+                const formattedDate = now.toLocaleDateString('ru-RU', options).replace(',', '');
+                document.getElementById('ticket-date-time').textContent = formattedDate;
+            }
+
+            function generateRandomNumber(min, max) {
+                return Math.floor(Math.random() * (max - min + 1)) + min;
+            }
+
+            function updateTicket() {
+                const randomTwoDigit = generateRandomNumber(1, 79).toString().padStart(2, '0');
+                const randomThreeDigit = generateRandomNumber(11, 800).toString().padStart(3, '0');
+                const now = new Date();
+                const year = now.getFullYear();
+                const month = ('0' + (now.getMonth() + 1)).slice(-2);
+                const day = ('0' + now.getDate()).slice(-2);
+                const randomDigits = generateRandomNumber(100000, 999999);
+                const ticketNumber = year + month + day + randomDigits + '000';
+                
+                document.getElementById('ticket-series').textContent = 'QR2001' + randomTwoDigit + '000' + randomThreeDigit;
+                document.getElementById('ticket-number').textContent = ticketNumber;
+            }
+
+            // Инициализация
+            updateTime();
+            updateTicket();
+            setInterval(updateTime, 1000 * 60); // Каждую минуту
+            setInterval(updateTicket, 24 * 60 * 60 * 1000); // Каждые 24 часа
+        });
+
+        function editBus() {
+            toggleEditVisibility('ticket-bus', 'input-ticket-bus');
+        }
+
+        function editTC() {
+            toggleEditVisibility('ticket-tc', 'input-ticket-tc');
+        }
+
+        function editPrice() {
+            toggleEditVisibility('ticket-price', 'input-ticket-price');
+        }
+
+        function toggleEditVisibility(textId, inputId, suffix = '') {
+            const textElement = document.getElementById(textId);
+            const inputElement = document.getElementById(inputId);
+
+            inputElement.value = textElement.textContent.replace(suffix, '');
+            textElement.style.display = 'none';
+            inputElement.style.display = 'inline-block';
+            inputElement.focus();
+        }
+
+        function saveValue(textId, inputId, suffix = '') {
+            const textElement = document.getElementById(textId);
+            const inputElement = document.getElementById(inputId);
+            const newValue = inputElement.value.trim();
+
+            if (newValue !== '' && !isNaN(newValue)) {
+                textElement.textContent = newValue + suffix;
+            }
+
+            inputElement.style.display = 'none';
+            textElement.style.display = 'inline-block';
+        }
+
+        // Обработчики для сохранения изменений при потере фокуса
+        document.getElementById('input-ticket-bus').addEventListener('blur', () => saveValue('ticket-bus', 'input-ticket-bus'));
+        document.getElementById('input-ticket-tc').addEventListener('blur', () => saveValue('ticket-tc', 'input-ticket-tc'));
+        document.getElementById('input-ticket-price').addEventListener('blur', () => saveValue('ticket-price', 'input-ticket-price',));
+
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.add('show');
+
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+
+        function toggleTransport() {
+            const busLabel = document.getElementById("bus-label");
+            busLabel.textContent = busLabel.textContent === "Автобус: №" ? "Троллейбус: №" : "Автобус: №";
+        }
+
+        let seconds = 0;
+
+        function resetTimer() {
+            seconds = 0;
+            updateTimer();
+        }
+
+        function updateTimer() {
+            const hours = Math.floor(seconds / 3600);
+            const minutes = Math.floor((seconds % 3600) / 60);
+            const remainingSeconds = seconds % 60;
+
+            const timeString = 
+                (hours < 10 ? "0" : "") + hours + ":" + 
+                (minutes < 10 ? "0" : "") + minutes + ":" + 
+                (remainingSeconds < 10 ? "0" : "") + remainingSeconds;
+
+            document.getElementById("time-since-payment").textContent = timeString;
+            seconds++;
+        }
+
+        setInterval(updateTimer, 1000);
+
+        function playVideo() {
+            const videoContainer = document.getElementById("videoContainer");
+            const video = document.getElementById("payment-notification-video");
+
+            const randomVideoIndex = Math.floor(Math.random() * 5) + 1;
+            video.src = `${randomVideoIndex}.mp4`;
+
+            videoContainer.classList.add('fullscreen');
+
+            videoContainer.style.display = "flex";
+            video.play();
+
+            videoContainer.addEventListener('click', function() {
+                video.pause();
+                videoContainer.classList.remove('fullscreen');
+                videoContainer.style.display = 'none';
+            });
+        }
+
+        // Проверяем, авторизован ли пользователь
+        if (localStorage.getItem("zxchoxxyv3.0sub") !== "true") {
+            // Если нет, перенаправляем на страницу логина
+            window.location.href = "login.html";
+        }
+
+
+    </script>
+
+    <style>
+        .show {
+            display: block;
+        }
+
+        .input-hidden {
+            display: none;
+        }
+    </style>
 </body>
-</html>
+
+
+
+
+<!-- 
+
+Так, ЕБАТЬ 
+Во-первых, зачем ты сюда зашел?
+Во-вторых, скажи спасибо создателю, что экономишь свои ебаные копейки.
+В-третьих не пизди сайт, заебал.
+
+devblog v3.0 qr-ZOV🇺🇦:
+    новый дизайн под обнову.
+    система паролей.
+
+info:
+    dev @zxchoxxy
+    подписка в месяц 350руб.
+
+-->
